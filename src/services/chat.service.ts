@@ -27,7 +27,7 @@ export const ChatService = {
             const model = getAI.getGenerativeModel({ model: "gemini-2.0-flash" }); // free model
     
             // Map chat history to Gemini AI format
-            const history = session.messages.map((msg: IMessage) => ({
+            const history = session.messages.slice(0, -1).map((msg: IMessage) => ({
                 role: msg.role === 'assistant' ? 'model' : 'user', // Map roles to Gemini AI expected roles
                 parts: [{ text: msg.content }],
             }));
@@ -46,5 +46,10 @@ export const ChatService = {
             console.error("Error in ChatService.getResponse:", error);
             throw new Error("Failed to get response from AI service.");
         }
+    },
+
+    async getHistory(userId: string): Promise<IMessage[]> {
+        const session = await ChatSession.findOne({ user: userId });
+        return session?.messages || [];
     }
 }
