@@ -16,3 +16,13 @@ export const sendMessage = async (req: Request, res: Response) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+export const getHistory = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).userId;
+        const history = await chatService.getHistory(userId);
+        res.status(200).json({ history });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
