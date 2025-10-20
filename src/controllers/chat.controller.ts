@@ -26,3 +26,33 @@ export const getHistory = async (req: Request, res: Response) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+export const createNewSession = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).userId;
+        const sessionId = await chatService.createNewSession(userId);
+        res.status(201).json({ sessionId });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const getSessions = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).userId;
+        const sessions = await chatService.getSessions(userId);
+        res.status(200).json({ sessions });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const getSessionMessages = async (req: Request, res: Response) => {
+    try {
+        const { sessionId } = req.params;
+        const messages = await chatService.getSessionMessages(sessionId);
+        res.status(200).json({ messages });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
