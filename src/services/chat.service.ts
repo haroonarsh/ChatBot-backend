@@ -2,6 +2,8 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import ChatSession from "../models/ChatSession";
 import { IMessage } from "../interfaces/IMessage";
 import config from "../config";
+import { HydratedDocument } from "mongoose";
+import { IChatSession } from "../interfaces/IChatSession";
 
 
 const getAI = new GoogleGenerativeAI(config.GEMINI_API_KEY as string);
@@ -50,6 +52,26 @@ export const ChatService = {
 
     async getHistory(userId: string): Promise<IMessage[]> {
         const session = await ChatSession.findOne({ user: userId });
+        return session?.messages || [];
+    },
+
+    async createNewSession(userId: string): Promise<void> {
+        const session = new ChatSession({ user: userId, messages: [] });
+        await session.save();
+        return session.id.toString(); // Return the session ID
+    },
+
+    async getSessions(userId: string): Promise<{ id: string; title: string; updatedAt: Date }[]> {  // New: List sessions
+    const sessions: HydratedDocument<IChatSession>[] = await ChatSession.find({ user: userId }).sort({ updatedAt: -1 });
+    return sessions.map((s) => ({
+      id: s._id.toString(),
+      title: s.messages[0]?.content.substring(0, 20) + '...' || `New Chat - ${s.updatedAt.toLocaleDateString()}`,
+      updatedAt: s.updatedAt,
+    }));
+    },
+    
+    async getSessionMessages(sessionId: string): Promise<IMessage[]> {  // New: Get messages for a specific session
+        const session = await ChatSession.findById(sessionId);
         return session?.messages || [];
     }
 }
