@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.middleware";
-import { createNewSession, getHistory, getSessionMessages, getSessions, sendMessage } from "../controllers/chat.controller";
+import { createNewSession, getSessionMessages, getSessions, sendMessage } from "../controllers/chat.controller";
 
 const router = Router();
 
