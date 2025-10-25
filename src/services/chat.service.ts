@@ -16,43 +16,38 @@ export const ChatService = {
         // Initialization if needed
         
     },
-    async getResponse(userId: string, message: string): Promise<string> {
+    async getResponse(sessionId: string, message: string): Promise<string> {
         try {
-            let session = await ChatSession.findOne({ user: userId });
+            let session = await ChatSession.findById(sessionId);  // Find by sessionId only
             if (!session) {
-                session = new ChatSession({ user: userId, messages: [] });
+                throw new Error('Session not found');
             }
-    
-            // Push user message
+
             session.messages.push({ role: 'user', content: message });
     
             const model = getAI.getGenerativeModel({ model: "gemini-2.0-flash" }); // free model
     
             // Map chat history to Gemini AI format
             const history = session.messages.slice(0, -1).map((msg: IMessage) => ({
-                role: msg.role === 'assistant' ? 'model' : 'user', // Map roles to Gemini AI expected roles
+                role: msg.role === 'assistant' ? 'model' : 'user',
                 parts: [{ text: msg.content }],
             }));
-    
+
             const chat = model.startChat({ history });
-    
-            const result = await chat.sendMessage(message); // Send the latest user message
-    
+
+            const result = await chat.sendMessage(message);
+
             const botResponse = result.response.text();
-    
+
             session.messages.push({ role: 'assistant', content: botResponse });
             await session.save();
-    
+            console.log(`Message appended to session ${sessionId}`);  // Debug log
+
             return botResponse;
         } catch (error) {
             console.error("Error in ChatService.getResponse:", error);
             throw new Error("Failed to get response from AI service.");
         }
-    },
-
-    async getHistory(userId: string): Promise<IMessage[]> {
-        const session = await ChatSession.findOne({ user: userId });
-        return session?.messages || [];
     },
 
     async createNewSession(userId: string): Promise<void> {
